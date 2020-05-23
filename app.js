@@ -75,17 +75,24 @@ app.post('/signIn', async (req, res) => {
         errorsArray.push({
             msg: 'Las contraseñas no son iguales'
         });
-        console.log(errorsArray)
+    }
+    if (req.body.repeatPassword.length<6 || req.body.contraseña.length<6){
+        errorsArray.push({
+            msg: 'La contraseña debe tener al menos 6 caracteres'
+        });
     }
     if (!nombre || !primerApellido || !segundoApellido || !correo || !cargo) {
         errorsArray.push({
-            msg: 'nombre vacio'
+            msg: 'Rellena todos los campos'
         });
-        console.log(errorsArray)
+    }
+    if(!correo.includes('@')){
+        errorsArray.push({
+            msg: 'Email incorrecto'
+        });
     }
     if (errorsArray.length > 0) {
         res.send(errorsArray);
-        console.log(errorsArray)
     } else {
         const user = {
             nombre: req.body.nombre,
