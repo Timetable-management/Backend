@@ -70,7 +70,6 @@ app.post('/signIn', async (req, res) => {
     const segundoApellido = req.body.segundoApellido;
     const correo = req.body.correo;
     const cargo = req.body.cargo;
-    const contraseña = hashedPassword;
     
     if (req.body.repeatPassword !== req.body.contraseña) {
         errorsArray.push({
