@@ -63,35 +63,38 @@ app.post('/login', (req, res) => {
 
 //Ruta POST para nuevo empleado encriptando contraseña
 app.post('/signIn', async (req, res) => {
-    let errorsArray = [];
+    let errorsArray = {
+        status: 'error',
+        results: []
+    };
     const hashedPassword = await bcrypt.hash(req.body.contraseña, 10);
     const nombre = req.body.nombre;
     const primerApellido = req.body.primerApellido;
     const segundoApellido = req.body.segundoApellido;
     const correo = req.body.correo;
     const cargo = req.body.cargo;
-    
+
     if (req.body.repeatPassword !== req.body.contraseña) {
-        errorsArray.push({
+        errorsArray.results.push({
             msg: 'Las contraseñas no son iguales'
         });
     }
-    if (req.body.repeatPassword.length<6 || req.body.contraseña.length<6){
-        errorsArray.push({
-            msg: 'La contraseña debe tener al menos 6 caracteres'
+    if (req.body.repeatPassword.length < 6 || req.body.contraseña.length < 6) {
+        errorsArray.results.push({
+            msg: 'La contraseña debe tener al menos 7 caracteres'
         });
     }
     if (!nombre || !primerApellido || !segundoApellido || !correo || !cargo) {
-        errorsArray.push({
+        errorsArray.results.push({
             msg: 'Rellena todos los campos'
         });
     }
-    if(!correo.includes('@')){
-        errorsArray.push({
+    if (!correo.includes('@')) {
+        errorsArray.results.push({
             msg: 'Email incorrecto'
         });
     }
-    if (errorsArray.length > 0) {
+    if (errorsArray.results.length > 0) {
         res.send(errorsArray);
     } else {
         const user = {
