@@ -95,7 +95,7 @@ app.post('/signIn', async (req, res) => {
         });
     }
     if (errorsArray.results.length > 0) {
-        res.send(errorsArray);
+        res.status(400).send(errorsArray);
     } else {
         const user = {
             nombre: req.body.nombre,
