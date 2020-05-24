@@ -63,39 +63,51 @@ app.post('/login', (req, res) => {
 
 //Ruta POST para nuevo empleado encriptando contraseña
 app.post('/signIn', async (req, res) => {
-    let errorsArray = {
-        status: 'error',
-        results: []
+    let registerResponse = {
+        usuario: '',
+        errors: []
     };
     const hashedPassword = await bcrypt.hash(req.body.contraseña, 10);
     const nombre = req.body.nombre;
     const primerApellido = req.body.primerApellido;
     const segundoApellido = req.body.segundoApellido;
-    const correo = req.body.correo;
+    const correo = req.body.correo.toLowerCase();
     const cargo = req.body.cargo;
 
     if (req.body.repeatPassword !== req.body.contraseña) {
-        errorsArray.results.push({
+        registerResponse.errors.push({
             msg: 'Las contraseñas no son iguales'
         });
     }
     if (req.body.repeatPassword.length < 6 || req.body.contraseña.length < 6) {
-        errorsArray.results.push({
+        registerResponse.errors.push({
             msg: 'La contraseña debe tener al menos 7 caracteres'
         });
     }
     if (!nombre || !primerApellido || !segundoApellido || !correo || !cargo) {
-        errorsArray.results.push({
+        registerResponse.errors.push({
             msg: 'Rellena todos los campos'
         });
     }
     if (!correo.includes('@')) {
-        errorsArray.results.push({
+        registerResponse.errors.push({
             msg: 'Email incorrecto'
         });
     }
-    if (errorsArray.results.length > 0) {
-        res.status(400).send(errorsArray);
+    dataBase.query('SELECT correo FROM empleados', (error, results) => {
+        if (error) {
+            res.send(error)
+        } else {
+            if (results.includes(req.body.correo)) {
+                console.log(results)
+                registerResponse.errors.push({
+                    msg: 'Este correo ya esta registrado'
+                })
+            }
+        }
+    })
+    if (registerResponse.errors.length > 0) {
+        res.send(registerResponse);
     } else {
         const user = {
             nombre: req.body.nombre,
