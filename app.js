@@ -74,59 +74,59 @@ app.post('/signIn', async (req, res) => {
     const correo = req.body.correo.toLowerCase();
     const cargo = req.body.cargo;
 
-    if (req.body.repeatPassword !== req.body.contraseña) {
-        registerResponse.errors.push({
-            msg: 'Las contraseñas no son iguales'
-        });
-    }
-    if (req.body.repeatPassword.length < 6 || req.body.contraseña.length < 6) {
-        registerResponse.errors.push({
-            msg: 'La contraseña debe tener al menos 7 caracteres'
-        });
-    }
-    if (!nombre || !primerApellido || !segundoApellido || !correo || !cargo) {
-        registerResponse.errors.push({
-            msg: 'Rellena todos los campos'
-        });
-    }
-    if (!correo.includes('@')) {
-        registerResponse.errors.push({
-            msg: 'Email incorrecto'
-        });
-    }
-    dataBase.query('SELECT correo FROM empleados', (error, results) => {
+
+    dataBase.query('SELECT correo FROM empleados WHERE correo = ?', req.body.correo, (error, results) => {
         if (error) {
             res.send(error)
         } else {
-            if (results.includes(req.body.correo)) {
-                console.log(results)
+            if (req.body.repeatPassword !== req.body.contraseña) {
+                registerResponse.errors.push({
+                    msg: 'Las contraseñas no son iguales'
+                });
+            }
+            if (req.body.repeatPassword.length < 6 || req.body.contraseña.length < 6) {
+                registerResponse.errors.push({
+                    msg: 'La contraseña debe tener al menos 7 caracteres'
+                });
+            }
+            if (!nombre || !primerApellido || !segundoApellido || !correo || !cargo) {
+                registerResponse.errors.push({
+                    msg: 'Rellena todos los campos'
+                });
+            }
+            if (!correo.includes('@')) {
+                registerResponse.errors.push({
+                    msg: 'Email incorrecto'
+                });
+            }
+            if (results.length !== 0) {
                 registerResponse.errors.push({
                     msg: 'Este correo ya esta registrado'
                 })
             }
-        }
-    })
-    if (registerResponse.errors.length > 0) {
-        res.send(registerResponse);
-    } else {
-        const user = {
-            nombre: req.body.nombre,
-            primerApellido: req.body.primerApellido,
-            segundoApellido: req.body.segundoApellido,
-            correo: req.body.correo,
-            cargo: req.body.cargo,
-            contraseña: hashedPassword
-        }
-        dataBase.query('INSERT INTO empleados SET ?', user, (error, results) => {
-            if (error) {
-                res.send(error);
+            if (registerResponse.errors.length > 0) {
+                res.send(registerResponse);
             } else {
-                dataBase.query('SELECT * FROM empleados WHERE correo = ?', req.body.correo, (error, results) => {
-                    !error ? res.send(results) : res.send(error)
+                const user = {
+                    nombre: req.body.nombre,
+                    primerApellido: req.body.primerApellido,
+                    segundoApellido: req.body.segundoApellido,
+                    correo: req.body.correo,
+                    cargo: req.body.cargo,
+                    contraseña: hashedPassword
+                }
+                dataBase.query('INSERT INTO empleados SET ?', user, (error, results) => {
+                    if (error) {
+                        res.send(error);
+                    } else {
+                        dataBase.query('SELECT * FROM empleados WHERE correo = ?', req.body.correo, (error, results) => {
+                            !error ? res.send(results) : res.send(error)
+                        })
+                    }
                 })
             }
-        })
-    }
+        }
+    })
 })
 
 // -------------------------FIN REGISTRO--------------------------------
@@ -159,3 +159,19 @@ app.delete('/employee/:correo', (req, res) => {
 // -------------------------USUARIO---------------------------------------
 
 // -------------------------FIN USUARIO-----------------------------------
+
+
+app.get('/traeCorreos', (req, res) => {
+    const correoP = 'correo@correosss.com'
+    dataBase.query('SELECT correo FROM empleados WHERE correo = ?', correoP, (error, results) => {
+        if (error) {
+            res.send(error)
+        } else {
+            if (results.length !== 0) {
+                res.send('KO')
+            } else {
+                res.send('OK')
+            }
+        }
+    })
+})
