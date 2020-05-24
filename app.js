@@ -38,17 +38,32 @@ app.get('/', (req, res) => {
 //Hacemos Login: Localizamos al usuario por el email y verificamos que la contraseña coincide con la guardada
 app.post('/login', (req, res) => {
     dataBase.query('SELECT * FROM empleados WHERE correo = ?', req.body.correo, async (error, results) => {
+        let loginResponse = {
+            usuario: '',
+            errors: []
+        };
         if (error) {
             res.send(error);
         } else {
             if (results.length !== 0) {
                 if (await bcrypt.compare(req.body.contraseña, results[0].contraseña)) {
-                    res.send(results);
+                    //Lo hacemos asi para no llevar al front la contraseña
+                    loginResponse.usuario = {
+                        id : results[0].id, 
+                        nombre : results[0].nombre,
+                        primerApellido : results[0].primerApellido,
+                        segundoApellido: results[0].segundoApellido,
+                        correo: results[0].correo,
+                        cargo: results[0].cargo
+                    };
+                    res.send(loginResponse);
                 } else {
-                    res.send([{msg: 'Te has equivocado de contraseña'}]);
+                    loginResponse.errors.push({msg: 'Te has equivocado de contraseña'});
+                    res.send(loginResponse);
                 }
             } else {
-                res.send([{msg: 'No estás registrado'}]);
+                loginResponse.errors.push({msg: 'No estás registrado'});
+                res.send(loginResponse);
             }
         }
     })
