@@ -37,21 +37,18 @@ app.get('/', (req, res) => {
 
 //Hacemos Login: Localizamos al usuario por el email y verificamos que la contraseña coincide con la guardada
 app.post('/login', (req, res) => {
-    dataBase.query('SELECT * FROM empleados', async (error, results) => {
+    dataBase.query('SELECT * FROM empleados WHERE correo = ?', req.body.correo, async (error, results) => {
         if (error) {
             res.send(error);
         } else {
-            const thisUser = results.find((empleado) => {
-                return empleado.correo === req.body.correo;
-            })
-            if (thisUser == null) {
-                res.send('No estás regitrado');
-            } else {
-                if (await bcrypt.compare(req.body.contraseña, thisUser.contraseña)) {
-                    res.send('La contraseña es igual');
+            if (results.length !== 0) {
+                if (await bcrypt.compare(req.body.contraseña, results[0].contraseña)) {
+                    res.send(results);
                 } else {
-                    res.send('Te has equivocado de contraseña');
+                    res.send([{msg: 'Te has equivocado de contraseña'}]);
                 }
+            } else {
+                res.send([{msg: 'No estás registrado'}]);
             }
         }
     })
@@ -160,18 +157,3 @@ app.delete('/employee/:correo', (req, res) => {
 
 // -------------------------FIN USUARIO-----------------------------------
 
-
-app.get('/traeCorreos', (req, res) => {
-    const correoP = 'correo@correosss.com'
-    dataBase.query('SELECT correo FROM empleados WHERE correo = ?', correoP, (error, results) => {
-        if (error) {
-            res.send(error)
-        } else {
-            if (results.length !== 0) {
-                res.send('KO')
-            } else {
-                res.send('OK')
-            }
-        }
-    })
-})
